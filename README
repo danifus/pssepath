@@ -1,0 +1,23 @@
+pssepath - Easy PSSE Python coding
+
+whit. (whit.com.au)
+
+pssepath simplifies the code required to setup the Python environment necessary
+to use the PSSE API. Importing pssepath at the beginning of the script will
+find the install location of PSSE and prepare Python for importing psspy. The
+usage of this package (after installation) would be as follows:
+
+import pssepath
+import psspy
+
+Another benefit of using pssepath is that it will find the appropriate install
+locations on other people's computers, encouraging easy reuse and sharing of
+code with colleagues.
+
+Installation:
+At the moment, place pssepath.py in the same directory as the code you wish to
+run. An easy, global installation is in the works.
+
+
+Improvements or suggestions?
+contact: daniel .at. whit.com.au
