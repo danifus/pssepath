@@ -18,6 +18,19 @@ Installation:
 At the moment, place pssepath.py in the same directory as the code you wish to
 run. An easy, global installation is in the works.
 
+License:
+This program is released under the very permissive MIT license. You may freely
+use it for commercial purposes, without needing to provide modified source.
+
+Read the LICENSE file for more information.
+
+Contributers:
+Discussion about this module was conducted at
+http://forum.whit.com.au/psse-help-forum/question/3/how-do-i-import-the-psspy-module-in-a-python involving the following members:
+chip
+JervisW
+Daniel Hillier
 
 Improvements or suggestions?
+visit: http://forum.whit.com.au/psse-help-forum/question/3/how-do-i-import-the-psspy-module-in-a-python
 contact: daniel .at. whit.com.au
