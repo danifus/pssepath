@@ -133,21 +133,16 @@ def setup_psspy_env():
     name,major,minor,modlvl,date,stat = get_psse_version(psse_location)
     print ('[pssepath] Using PSSE Version %s.%s\n'
            '[pssepath]   Install Path: %s\n' %(major, minor, psse_location))
+
+    # Time to add the path and get to work.
     add_psse_path(psse_location)
 
 # ========== Python init
+# get the ball rolling on import.
 setup_psspy_env()
 
 if __name__ == "__main__":
-    paths = usual_psse_paths()
-
-    for p in paths:
-        pssbin_paths = list(walk_for_pssbin(p))
-
-    print pssbin_paths
-
-    import timeit
-    timer = timeit.Timer(r'list(walk_for_pssbin("c:\\",depth=5))','from __main__ import walk_for_pssbin')
-    print timer.timeit(1)
-    for p in walk_for_pssbin('c:\\',depth=5):
-        print p
+    # do the same thing as just importing. Probably can do better than that.
+    # Maybe running the module should produce some diagnostics about what
+    # installs are present etc.
+    setup_psspy_env()
