@@ -24,10 +24,34 @@ def is_directory_pssbin(files):
         return False
 
 def add_psse_path(psse_path):
-    sys.path.append(psse_path)
-    os.environ['PATH'] = os.environ['PATH'] + ';' +  psse_path
+    """Add psse_path to 'sys.path' and 'os.environ['PATH'].
+
+    Checks whether there is already a PSSE environment in the path. The path
+    that we are adding will probably be later in the path search and thus
+    overlooked, so we abort.
+
+    This affects the os and sys modules, thus these side-effects are global.
+
+    This is all side-effects which is not the prettiest.
+    """
+    try:
+        # if this works, then there is already a path that has a psspy module
+        # in it and we can't be certain that our setup is doing its job.
+        import psspy
+    except ImportError:
+        # No PSSE environ found, so lets add one!
+        sys.path.append(psse_path)
+        os.environ['PATH'] = os.environ['PATH'] + ';' +  psse_path
+    else:
+        path_to_install = os.path.dirname(psspy.__file__)
+        # We found a PSSE environ already active. Let's get out of here!
+        raise Exception('pssepath found a PSSE environ already loaded: '
+                'Aborting\n'
+                'Path to install: %s:' % (path_to_install,))
 
 def rem_psse_path(psse_path):
+    """Remove psse_path from 'sys.path' and 'os.environ['PATH']."""
+
     if psse_path in sys.path:
         sys.path.remove(psse_path)
     if psse_path in os.environ['PATH']:
