@@ -28,6 +28,7 @@ def usual_psse_paths():
     paths = filter(os.path.exists, paths)
     return paths
 
+
 def is_directory_pssbin(files):
     """Check whether the files passed in are indicitive with a PSSBIN dir.
 
@@ -40,41 +41,6 @@ def is_directory_pssbin(files):
     else:
         return False
 
-def add_psse_path(psse_path):
-    """Add psse_path to 'sys.path' and 'os.environ['PATH'].
-
-    Checks whether there is already a PSSE environment in the path. The path
-    that we are adding will probably be later in the path search and thus
-    overlooked, so we abort.
-
-    This affects the os and sys modules, thus these side-effects are global.
-
-    This is all side-effects which is not the prettiest.
-    """
-    try:
-        # if this works, then there is already a path that has a psspy module
-        # in it and we can't be certain that our setup is doing its job.
-        import psspy
-    except ImportError:
-        # No PSSE environ found, so lets add one!
-        sys.path.append(psse_path)
-        os.environ['PATH'] = os.environ['PATH'] + ';' +  psse_path
-    else:
-        path_to_install = os.path.dirname(psspy.__file__)
-        # We found a PSSE environ already active. Let's get out of here!
-        raise Exception('pssepath found a PSSE environ already loaded: '
-                'Aborting\n'
-                'Path to install: %s:' % (path_to_install,))
-
-def rem_psse_path(psse_path):
-    """Remove psse_path from 'sys.path' and 'os.environ['PATH']."""
-
-    if psse_path in sys.path:
-        sys.path.remove(psse_path)
-    if psse_path in os.environ['PATH']:
-        sys_paths = os.environ['PATH'].split(';')
-        sys_paths.remove(psse_path)
-        os.environ.update({'PATH': ';'.join(sys_paths)})
 
 def is_working_install(path):
     """Check 'psspy' can be imported once 'path' has been add to system."""
@@ -102,15 +68,6 @@ def is_working_install(path):
     finally:
         rem_psse_path(path)
 
-def get_psse_version(path):
-    """Return a version tuple: (name,major,minor,modlvl,date,stat)"""
-
-    add_psse_path(path)
-    import psspy
-    rem_psse_path(path)
-    version = psspy.psseversion()
-    return version
-
 
 def walk_for_pssbin(path_top, depth = None):
     """Return a list of all possible PSSBIN dirs under 'path_top'.
@@ -128,6 +85,54 @@ def walk_for_pssbin(path_top, depth = None):
         if depth and root.count(os.sep) >= depth:
             # dirs[:] is the list of directories which os.walk will descend into
             del dirs[:]
+
+
+def add_psse_path(psse_path):
+    """Add psse_path to 'sys.path' and 'os.environ['PATH'].
+
+    Checks whether there is already a PSSE environment in the path. The path
+    that we are adding will probably be later in the path search and thus
+    overlooked, so we abort.
+
+    This affects the os and sys modules, thus these side-effects are global.
+
+    This is all side-effects which is not the prettiest.
+    """
+    try:
+        # if this works, then there is already a path that has a psspy module
+        # in it and we can't be certain that our setup is doing its job.
+        import psspy
+    except ImportError:
+        # No PSSE environ found, so lets add one!
+        sys.path.append(psse_path)
+        os.environ['PATH'] = os.environ['PATH'] + ';' +  psse_path
+    else:
+        path_to_install = os.path.dirname(psspy.__file__)
+        # We found a PSSE environ already active. Let's get out of here!
+        raise Exception('pssepath found a PSSE environ already loaded: '
+                'Aborting\n'
+                'Path to install: %s:' % (path_to_install,))
+
+
+def rem_psse_path(psse_path):
+    """Remove psse_path from 'sys.path' and 'os.environ['PATH']."""
+
+    if psse_path in sys.path:
+        sys.path.remove(psse_path)
+    if psse_path in os.environ['PATH']:
+        sys_paths = os.environ['PATH'].split(';')
+        sys_paths.remove(psse_path)
+        os.environ.update({'PATH': ';'.join(sys_paths)})
+
+
+def get_psse_version(path):
+    """Return a version tuple: (name,major,minor,modlvl,date,stat)"""
+
+    add_psse_path(path)
+    import psspy
+    rem_psse_path(path)
+    version = psspy.psseversion()
+    return version
 
 def select_psse_install(installs):
     """Return selected index from the printed selection menu of installs.
