@@ -66,8 +66,6 @@ def is_working_install(path):
     except ImportError:
         return False
     else:
-        # undo import
-        del psspy
         # import worked
         return True
     finally:
