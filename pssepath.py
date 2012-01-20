@@ -8,9 +8,9 @@ def usual_psse_paths():
     # The path is $DRIVE:\Program Files <x86>\PTI\PSSE*
     drives = win32api.GetLogicalDriveStrings()
     drives = [drivestr for drivestr in drives.split('\x00') if drivestr]
-    
+
     COMMON_PROG_FILES = ('Program Files', 'Program Files (x86)')
-    
+
     paths = [os.path.join(drive, folder, 'PTI') for drive in drives
                                              for folder in COMMON_PROG_FILES]
 
@@ -56,8 +56,8 @@ def get_psse_version(path):
     # psspy.psseversion() returns: name,major,minor,modlvl,date,stat
     version = psspy.psseversion()
     return version
-    
-                  
+
+
 def walk_for_pssbin(path_top, depth = None):
     for root, dirs, files in os.walk(path_top):
         if is_directory_pssbin(files):
@@ -78,11 +78,11 @@ def select_psse_install(installs):
                                     'PSSE installations: '))
         except ValueError:
             continue
-        
+
         if 1 <= user_input <= len(installs):
             # Less one due to zero based vs 1-based (len)
             return user_input - 1
-    
+
 def setup_psspy_env():
     # We should look in any configuration files first and if they don't exist,
     # then move onto automatically determining the install location.
@@ -102,11 +102,12 @@ def setup_psspy_env():
     #       directories. A function to update this entry would be trivial to run
     #       again, but non-savy users may not find it straight away.
     #     - It could be set up to make a unique config name (computer name with
-    #       python version) for different computers it the config file is run on 
+    #       python version) for different computers it the config file is run on
 
     # It would be preferable to only have one location for it so there is only
-    # one file to look at if things go wrong (instead of having: "First look here
-    # then if the possible entries in there don't match, look over there.")
+    # one file to look at if things go wrong (instead of having: "First look
+    # here then if the possible entries in there don't match, look over
+    # there.")
 
     # Look to automatically find the path.
     # Look in the usual suspects
