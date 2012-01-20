@@ -5,6 +5,17 @@ import win32api
 PSSPYC_FILENAME = 'psspy.pyc'
 
 def usual_psse_paths():
+    """Return a List of usual PTI install locations which exist.
+
+    Returns all permutations of:
+        - every drive on the system;
+        - both usual "Program Files" dirs used;
+        - with 'PTI' appended on the end;
+        - only returns paths that exist.
+
+    These are the most common install locations. Specific versions will be
+    installed under this dir.
+    """
     # The path is $DRIVE:\Program Files <x86>\PTI\PSSE*
     drives = win32api.GetLogicalDriveStrings()
     drives = [drivestr for drivestr in drives.split('\x00') if drivestr]
@@ -18,6 +29,12 @@ def usual_psse_paths():
     return paths
 
 def is_directory_pssbin(files):
+    """Check whether the files passed in are indicitive with a PSSBIN dir.
+
+    At the moment, it only checks whether the 'psspy.pyc' is in this folder.
+    This function could easily be extended to be more rigorous by checking the
+    existance of more files.
+    """
     if PSSPYC_FILENAME in files:
         return True
     else:
@@ -86,15 +103,24 @@ def is_working_install(path):
         rem_psse_path(path)
 
 def get_psse_version(path):
+    """Return a version tuple: (name,major,minor,modlvl,date,stat)"""
+
     add_psse_path(path)
     import psspy
     rem_psse_path(path)
-    # psspy.psseversion() returns: name,major,minor,modlvl,date,stat
     version = psspy.psseversion()
     return version
 
 
 def walk_for_pssbin(path_top, depth = None):
+    """Return a list of all possible PSSBIN dirs under 'path_top'.
+
+    'depth' specifies how many folders deep the search should progress.
+
+    Thus, if you have PSSE32 and PSSE33 installed in the same PTI dir, it will
+    find both of these folders.
+    """
+
     for root, dirs, files in os.walk(path_top):
         if is_directory_pssbin(files):
             yield root
@@ -104,6 +130,12 @@ def walk_for_pssbin(path_top, depth = None):
             del dirs[:]
 
 def select_psse_install(installs):
+    """Return selected index from the printed selection menu of installs.
+
+    'installs' is a list of __valid__ installs. Installs should be verified by
+        this stage.
+    """
+
     print 'Please select from the available PSSE installs:\n'
     for i, path in enumerate(installs):
         name,major,minor,modlvl,date,stat = get_psse_version(path)
