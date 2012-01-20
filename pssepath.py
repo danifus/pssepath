@@ -60,10 +60,24 @@ def rem_psse_path(psse_path):
         os.environ.update({'PATH': ';'.join(sys_paths)})
 
 def is_working_install(path):
+    """Check 'psspy' can be imported once 'path' has been add to system."""
+
+    # TODO: This should? fail if the incorrect version of Python is used. need
+    # to check that it does.
+
+    # This is just a more robust (and more time consuming) version of
+    # 'is_directory_pssbin()'. I'
+
     add_psse_path(path)
     try:
         import psspy
-    except ImportError:
+        # Call a function of the API to make sure it isn't just a folder with a
+        # file named psspy.py or psspy.pyc
+        version = psspy.psseversion()
+
+    except (ImportError, AttributeError):
+        # ImportError for when psspy isn't there,
+        # AttributeError for when psspy.psseversion() isn't there.
         return False
     else:
         # import worked
