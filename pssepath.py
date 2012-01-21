@@ -147,6 +147,12 @@ def get_psse_version(path):
     version = psspy.psseversion()
     return version
 
+def get_psse_version_string(path):
+    """Return "PSSE Version: %major.%minor"
+    """
+    name, major, minor, modlvl,date,stat = get_psse_version(path)
+    return 'PSSE Version: %s.%s' % (major, minor)
+
 def select_psse_install(installs):
     """Return selected index from the printed selection menu of installs.
 
@@ -156,8 +162,8 @@ def select_psse_install(installs):
 
     print 'Please select from the available PSSE installs:\n'
     for i, path in enumerate(installs):
-        name,major,minor,modlvl,date,stat = get_psse_version(path)
-        print '  %i. Version %s.%s - %s\n' %(i+1, major, minor, path)
+        ver_string = get_psse_version_string(path)
+        print '  %i. %s - %s\n' %(i+1, ver_string, path)
     while True:
         try:
             user_input = int(raw_input('Enter a number from the above '
@@ -216,9 +222,9 @@ def setup_psspy_env():
     else:
         raise ImportError('No PSSE installs found in the usual locations.\n')
 
-    name,major,minor,modlvl,date,stat = get_psse_version(psse_location)
-    print ('[pssepath] Using PSSE Version %s.%s\n'
-           '[pssepath]   Install Path: %s\n' %(major, minor, psse_location))
+    ver_string = get_psse_version_string(psse_location)
+    print ('[pssepath] Using %s\n'
+           '[pssepath]   Install Path: %s\n' %(ver_string, psse_location))
 
     # Time to add the path and get to work.
     add_psse_path(psse_location)
