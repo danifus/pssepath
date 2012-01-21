@@ -94,6 +94,28 @@ def walk_for_pssbin(path_top, depth = None):
             # dirs[:] is the list of directories which os.walk will descend into
             del dirs[:]
 
+def check_psspy_already_in_path():
+    """Return boolean if 'import psspy' works when this function is called.
+    """
+    try:
+        import psspy
+    except ImportError:
+        return False
+    return True
+
+def get_available_psspy_location():
+    """Returns a string with the path of the currently accessible PSSE install.
+    """
+
+    # Unfortunately, it is not as simple as getting the file name from
+    # psspy.__file__ due to it being a pyc file, reported location and the
+    # actual location may be different.
+    if check_psspy_already_in_path():
+        import psspy
+        return os.path.normpath(os.path.dirname(psspy.__file__))
+        # for directory in sys.path:
+        #     if os.path.exists(os.path.join(directory,'psspy.pyc')):
+        #         return directory
 
 def add_psse_path(psse_path):
     """Add psse_path to 'sys.path' and 'os.environ['PATH'].
