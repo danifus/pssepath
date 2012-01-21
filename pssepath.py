@@ -44,8 +44,12 @@ def is_directory_pssbin(files):
         return False
 
 
-def is_working_install(path):
-    """Check 'psspy' can be imported once 'path' has been add to system."""
+def is_working_install(path=None):
+    """Check 'psspy' can be imported once 'path' has been add to system.
+    
+    If 'path' is not given, then it will try it without adding anything to the
+    system paths.
+    """
 
     # TODO: This should? fail if the incorrect version of Python is used. need
     # to check that it does.
@@ -53,7 +57,8 @@ def is_working_install(path):
     # This is just a more robust (and more time consuming) version of
     # 'is_directory_pssbin()'. I'
 
-    add_psse_path(path)
+    if path:
+        add_psse_path(path)
     try:
         import psspy
         # Call a function of the API to make sure it isn't just a folder with a
@@ -68,7 +73,8 @@ def is_working_install(path):
         # import worked
         return True
     finally:
-        rem_psse_path(path)
+        if path:
+            rem_psse_path(path)
 
 
 def walk_for_pssbin(path_top, depth = None):
