@@ -4,6 +4,8 @@ import win32api
 
 PSSPYC_FILENAME = 'psspy.pyc'
 
+psse32_files = ['pyutils.dll','psspyc.pyd', 'PTIUtils.dll']
+
 def usual_psse_paths():
     """Return a List of usual PTI install locations which exist.
 
