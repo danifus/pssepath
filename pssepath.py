@@ -9,8 +9,7 @@ psse32_files = ['pyutils.dll','psspyc.pyd', 'PTIUtils.dll','protecmdf.dll']
 def usual_psse_paths():
     """Return a List of usual PTI install locations which exist.
 
-    Returns all permutations of:
-        - every drive on the system;
+    Returns all paths which are in:
         - both usual "Program Files" dirs used;
         - with 'PTI' appended on the end;
         - only returns paths that exist.
@@ -18,14 +17,14 @@ def usual_psse_paths():
     These are the most common install locations. Specific versions will be
     installed under this dir.
     """
-    # The path is $DRIVE:\Program Files <x86>\PTI\PSSE*
-    drives = win32api.GetLogicalDriveStrings()
-    drives = [drivestr for drivestr in drives.split('\x00') if drivestr]
+    # both 'Program Files' and 'Program Files (x86)'
+    prog_files = []
+    for folder in ['ProgramFiles','ProgramFiles(x86)','ProgramW6432']:
+        if folder in os.environ:
+            if os.environ[folder] not in prog_files:
+                prog_files.append(os.environ[folder])
 
-    COMMON_PROG_FILES = ('Program Files', 'Program Files (x86)')
-
-    paths = [os.path.join(drive, folder, 'PTI') for drive in drives
-                                             for folder in COMMON_PROG_FILES]
+    paths = [os.path.join(folder, 'PTI') for folder in prog_files]
 
     paths = filter(os.path.exists, paths)
     return paths
