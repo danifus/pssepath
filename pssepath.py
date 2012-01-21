@@ -201,6 +201,23 @@ def setup_psspy_env():
     # here then if the possible entries in there don't match, look over
     # there.")
 
+    if check_psspy_already_in_path():
+        # its working so lets just roll with it.
+        psspy_path = get_available_psspy_location()
+        if is_working_install():
+            ver_string = get_psse_version_string(psspy_path)
+            print ('[pssepath] psspy can already be loaded without running pssepath\n'
+                '[pssepath] Continuing with already present PSSE install:\n'
+                '[pssepath]    %s\n'
+                '[pssepath]    Install Path: %s' % (ver_string, psspy_path))
+            return
+        else:
+            # its not working, so lets throw an exception
+            Exception('[pssepath] A psspy which has been found not to work has'
+                'been identified at:\n'
+                '[pssepath]  %s\n')
+
+
     # Look to automatically find the path.
     # Look in the usual suspects
     pssbin_paths = []
