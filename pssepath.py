@@ -2,8 +2,6 @@ import os
 import sys
 import _winreg
 
-# python_v
-
 class PsseImportError(Exception):
     pass
 
@@ -71,6 +69,17 @@ def _get_psse_locations_dict():
     _winreg.CloseKey(pti_key)
     return pssbin_paths
 
+def check_to_raise_compat_python_error(psse_version):
+    if not ignore_python_mismatch:
+        selected_path = pssbin_paths[psse_version]
+        req_python_ver = get_required_python_ver(selected_path)
+        if req_python_ver != sys.winver:
+            raise PsseImportError("Current Python and PSSE version"
+                "incompatible.\n\n"
+                "PSSE %s requires Python %s to run.\n"
+                "Current Python is Version %s.\n" % (psse_version,
+                    req_python_ver, sys.winver))
+
 @check_initialized
 def add_pssepath(pref_ver=None):
     """Add the PSSBIN path to the required locations.
@@ -85,6 +94,7 @@ def add_pssepath(pref_ver=None):
             if len(pssbin_paths) == 1:
                 ver_string = ('the installed version: %s' %
                         (pssbin_paths.keys()[0],))
+                check_to_raise_compat_python_error(psse_version)
             else:
                 psses = ', '.join([str(x) for x in pssbin_paths.keys()])
                 ver_string = 'an installed version: %s' % psses
@@ -97,7 +107,22 @@ def add_pssepath(pref_ver=None):
                 % (pref_ver, ver_string))
     else:
         # automatically select the most recent version.
-        selected_ver = sorted(pssbin_paths.keys())[-1]
+        rev_sorted_vers =  sorted(pssbin_paths.keys(), reverse=True)
+        selected_ver = None
+        # If 'ignore_python_mismatch = True' this will always return
+        # the most recent version as check_to_raise_compat_python_error won't
+        # raise an error.
+        for ver in rev_sorted_vers:
+            try:
+                check_to_raise_compat_python_error(psse_version)
+            except PsseImportError:
+                pass
+            else:
+                selected_ver = ver
+        if not selected_ver:
+            raise PsseImportError('No installed PSSE versions are compatible'
+                    'with the running version of Python (%s)\n')
+
 
     selected_path = pssbin_paths[selected_ver]
     add_dir_to_path(selected_path)
@@ -126,6 +151,7 @@ def select_pssepath():
             # Less one due to zero based vs 1-based (len)
             break
     selected_path = pssbin_paths[versions[user_input - 1]]
+    check_to_raise_compat_python_error(versions[user_input - 1])
     add_dir_to_path(selected_path)
     global initialized, psse_version, req_python_exec
     psse_version = versions[user_input - 1]
@@ -201,6 +227,7 @@ pssbin_paths = _get_psse_locations_dict()
 python_paths = _get_python_locations_dict()
 psse_version = None
 req_python_exec = None
+ignore_python_mismatch = False
 initialized = False
 if check_psspy_already_in_path():
     initialized = True
@@ -225,7 +252,7 @@ if check_psspy_already_in_path():
                 "if you have another version of PSSE installed, change your\n"
                 "PATH settings to point at the other install.\n\n"
                 "Run '%s pssepath.py' for more info about the versions\n"
-                "installed on your system.\n\n"% (sys.winver, req_python
+                "installed on your system.\n\n"% (sys.winver, req_python,
                     sys.executable))
 
         try:
@@ -247,3 +274,4 @@ if __name__ == "__main__":
     versions = sorted(pssbin_paths.keys())
     for i, ver in enumerate(versions):
         print '  %i. PSSE Version %d\n' %(i+1, ver)
+    raw_input("Press any key to continue...")
