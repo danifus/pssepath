@@ -101,8 +101,10 @@ def add_pssepath(pref_ver=None):
 
     selected_path = pssbin_paths[selected_ver]
     add_dir_to_path(selected_path)
-    global initialized, psse_version
+    global initialized, psse_version, req_python_exec
     psse_version = selected_ver
+    req_python_ver = get_required_python_ver(selected_path)
+    req_python_exec = os.path.join(python_paths[req_python_ver],'python.exe')
     initialized = True
 
 @check_initialized
@@ -123,9 +125,12 @@ def select_pssepath():
         if 0 < user_input <= len(pssbin_paths):
             # Less one due to zero based vs 1-based (len)
             break
-    add_dir_to_path(pssbin_paths[versions[user_input - 1]])
-    global initialized, psse_version
+    selected_path = pssbin_paths[versions[user_input - 1]]
+    add_dir_to_path(selected_path)
+    global initialized, psse_version, req_python_exec
     psse_version = versions[user_input - 1]
+    req_python_ver = get_required_python_ver(selected_path)
+    req_python_exec = os.path.join(python_paths[req_python_ver],'python.exe')
     initialized = True
 
 
@@ -143,8 +148,8 @@ def find_file_on_path(fname):
         if os.path.isfile(potential_file):
             return potential_file
 
-def get_required_python_ver(psse_version):
-    probable_pyc = os.path.join(pssbin_paths[psse_version],'psspy.pyc')
+def get_required_python_ver(pssbin):
+    probable_pyc = os.path.join(pssbin,'psspy.pyc')
     if not os.path.isfile(probable_pyc):
         # not in the suspected dir, perhaps abnormal install.
         probable_pyc = find_file_on_path('psspy.pyc')
@@ -190,10 +195,51 @@ pyc_magic_nums = {20121: '1.5', 20121: '1.5.1', 20121: '1.5.2', 50428: '1.6',
                   62151: '2.6a0', 62161: '2.6a1', 62171: '2.7a0',
             }
 
+
 # scrape pssbin paths from registry
 pssbin_paths = _get_psse_locations_dict()
+python_paths = _get_python_locations_dict()
 psse_version = None
+req_python_exec = None
 initialized = False
+if check_psspy_already_in_path():
+    initialized = True
+
+    # need to find the required python for this version
+    for folder in sys.path:
+        if 'PSSBIN' in folder:
+            # have a guess at the folder we want.
+            probable_folder = folder
+            break
+
+    if not probable_folder:
+        # search the entire path for psspy.pyc
+        probable_folder = ''
+
+    req_python = get_required_python_ver(probable_folder)
+
+    if req_python != sys.winver:
+        print ("WARNING: you have started a Python %s session when the\n"
+                "version required by the PSSE available in your path is\n"
+                "Python %s. \nEither use the required version of Python or,\n"
+                "if you have another version of PSSE installed, change your\n"
+                "PATH settings to point at the other install.\n\n"
+                "Run '%s pssepath.py' for more info about the versions\n"
+                "installed on your system.\n\n"% (sys.winver, req_python
+                    sys.executable))
+
+        try:
+            req_python_exec = os.path.join(python_paths[req_python],
+                    'python.exe')
+        except KeyError:
+            # Very unlikely
+            # Don't have the required version of python to run this version of
+            # psse.  Something is not right...
+            print ("Required version of python (%s) not located in registry.\n"
+                    % (req_python,))
+    else:
+        req_python_exec = sys.executable
+
 
 if __name__ == "__main__":
     # print the available psse installs.
