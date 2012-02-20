@@ -1,97 +1,11 @@
 import os
 import sys
-import win32api
+import _winreg
 
-PSSPYC_FILENAME = 'psspy.pyc'
+# python_v
 
-psse32_files = ['pyutils.dll','psspyc.pyd', 'PTIUtils.dll','protecmdf.dll']
-
-def usual_psse_paths():
-    """Return a List of usual PTI install locations which exist.
-
-    Returns all paths which are in:
-        - both usual "Program Files" dirs used;
-        - with 'PTI' appended on the end;
-        - only returns paths that exist.
-
-    These are the most common install locations. Specific versions will be
-    installed under this dir.
-    """
-    # both 'Program Files' and 'Program Files (x86)'
-    prog_files = []
-    for folder in ['ProgramFiles','ProgramFiles(x86)','ProgramW6432']:
-        if folder in os.environ:
-            if os.environ[folder] not in prog_files:
-                prog_files.append(os.environ[folder])
-
-    paths = [os.path.join(folder, 'PTI') for folder in prog_files]
-
-    paths = filter(os.path.exists, paths)
-    return paths
-
-
-def is_directory_pssbin(files):
-    """Check whether the files passed in are indicitive with a PSSBIN dir.
-
-    At the moment, it only checks whether the 'psspy.pyc' is in this folder.
-    This function could easily be extended to be more rigorous by checking the
-    existance of more files.
-    """
-    if PSSPYC_FILENAME in files:
-        return True
-    else:
-        return False
-
-
-def is_working_install(path=None):
-    """Check 'psspy' can be imported once 'path' has been add to system.
-    
-    If 'path' is not given, then it will try it without adding anything to the
-    system paths.
-    """
-
-    # TODO: This should? fail if the incorrect version of Python is used. need
-    # to check that it does.
-
-    # This is just a more robust (and more time consuming) version of
-    # 'is_directory_pssbin()'. I'
-
-    if path:
-        add_psse_path(path)
-    try:
-        import psspy
-        # Call a function of the API to make sure it isn't just a folder with a
-        # file named psspy.py or psspy.pyc
-        version = psspy.psseversion()
-
-    except (ImportError, AttributeError):
-        # ImportError for when psspy isn't there,
-        # AttributeError for when psspy.psseversion() isn't there.
-        return False
-    else:
-        # import worked
-        return True
-    finally:
-        if path:
-            rem_psse_path(path)
-
-
-def walk_for_pssbin(path_top, depth = None):
-    """Return a list of all possible PSSBIN dirs under 'path_top'.
-
-    'depth' specifies how many folders deep the search should progress.
-
-    Thus, if you have PSSE32 and PSSE33 installed in the same PTI dir, it will
-    find both of these folders.
-    """
-
-    for root, dirs, files in os.walk(path_top):
-        if is_directory_pssbin(files):
-            yield root
-        # We only want to go so deep in the search
-        if depth and root.count(os.sep) >= depth:
-            # dirs[:] is the list of directories which os.walk will descend into
-            del dirs[:]
+class PsseImportError(Exception):
+    pass
 
 def check_psspy_already_in_path():
     """Return boolean if 'import psspy' works when this function is called.
@@ -102,21 +16,17 @@ def check_psspy_already_in_path():
         return False
     return True
 
-def get_available_psspy_location():
-    """Returns a string with the path of the currently accessible PSSE install.
-    """
+def check_initialized(fn):
+    def wrapped(*args, **kwargs):
+        if check_psspy_already_in_path():
+            print "PSSBIN already in path, adding PSSBIN from pssepath skipped."
+        elif initialized:
+            print "psspath has already been executed, continuing."
+        else:
+            fn(*args, **kwargs)
+    return wrapped
 
-    # Unfortunately, it is not as simple as getting the file name from
-    # psspy.__file__ due to it being a pyc file, reported location and the
-    # actual location may be different.
-    if check_psspy_already_in_path():
-        import psspy
-        return os.path.normpath(os.path.dirname(psspy.__file__))
-        # for directory in sys.path:
-        #     if os.path.exists(os.path.join(directory,'psspy.pyc')):
-        #         return directory
-
-def add_psse_path(psse_path):
+def add_dir_to_path(psse_path):
     """Add psse_path to 'sys.path' and 'os.environ['PATH'].
 
     This affects the os and sys modules, thus these side-effects are global.
@@ -126,7 +36,7 @@ def add_psse_path(psse_path):
     sys.path.append(psse_path)
     os.environ['PATH'] = os.environ['PATH'] + ';' +  psse_path
 
-def rem_psse_path(psse_path):
+def rem_dir_from_path(psse_path):
     """Remove psse_path from 'sys.path' and 'os.environ['PATH']."""
 
     if psse_path in sys.path:
@@ -136,33 +46,73 @@ def rem_psse_path(psse_path):
         sys_paths.remove(psse_path)
         os.environ.update({'PATH': ';'.join(sys_paths)})
 
+def _get_psse_locations_dict():
+    pti_key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, 'SOFTWARE\\PTI')
 
-def get_psse_version(path):
-    """Return a version tuple: (name,major,minor,modlvl,date,stat)"""
+    pssbin_paths = {}
 
-    add_psse_path(path)
-    import psspy
-    rem_psse_path(path)
-    version = psspy.psseversion()
-    return version
+    sub_key_cnt = _winreg.QueryInfoKey(pti_key)[0]
+    for i in range(sub_key_cnt):
+        sub_key = _winreg.EnumKey(pti_key, i)
+        try:
+            ver_key = _winreg.OpenKey(pti_key, sub_key + '\\Product Paths')
+        except WindowsError:
+            pass
+        else:
+            # Version num is the last 2 digits of the subkey
+            version_num = int(sub_key[-2:])
+            path = _winreg.QueryValueEx(ver_key, 'PsseExePath')[0]
+            pssbin_paths[version_num] = path
 
-def get_psse_version_string(path):
-    """Return "PSSE Version: %major.%minor"
+    if not len(pssbin_paths):
+        raise PsseImportError('No installs of PSSE found.')
+
+    _winreg.CloseKey(ver_key)
+    _winreg.CloseKey(pti_key)
+    return pssbin_paths
+
+@check_initialized
+def add_pssepath(pref_ver=None):
+    """Add the PSSBIN path to the required locations.
+
+    Try to import the requested version of PSSE. If the requested version
+    doesn't work, raise an exception. By default, import the latest version.
     """
-    name, major, minor, modlvl,date,stat = get_psse_version(path)
-    return 'PSSE Version: %s.%s' % (major, minor)
+    if pref_ver:
+        if pref_ver in pssbin_paths.keys():
+            selected_ver = pref_ver
+        else:
+            if len(pssbin_paths) == 1:
+                ver_string = ('the installed version: %s' %
+                        (pssbin_paths.keys()[0],))
+            else:
+                psses = ', '.join([str(x) for x in pssbin_paths.keys()])
+                ver_string = 'an installed version: %s' % psses
 
-def select_psse_install(installs):
-    """Return selected index from the printed selection menu of installs.
+            raise PsseImportError('Attempted to initialize PSSE version %s but '
+                'it was not present.\n'
+                'Let pssepath select the latest version by not specifying a '
+                'version when\n'
+                'calling "pssepath.import_psse()", or select %s'
+                % (pref_ver, ver_string))
+    else:
+        # automatically select the most recent version.
+        selected_ver = sorted(pssbin_paths.keys())[-1]
 
-    'installs' is a list of __valid__ installs. Installs should be verified by
-        this stage.
-    """
+    selected_path = pssbin_paths[selected_ver]
+    add_dir_to_path(selected_path)
+    global initialized, psse_version
+    psse_version = selected_ver
+    initialized = True
+
+@check_initialized
+def select_pssepath():
+    """Produce a prompt to select the version of PSSE"""
 
     print 'Please select from the available PSSE installs:\n'
-    for i, path in enumerate(installs):
-        ver_string = get_psse_version_string(path)
-        print '  %i. %s - %s\n' %(i+1, ver_string, path)
+    versions = sorted(pssbin_paths.keys())
+    for i, ver in enumerate(versions):
+        print '  %i. PSSE Version %d\n' %(i+1, ver)
     while True:
         try:
             user_input = int(raw_input('Enter a number from the above '
@@ -170,87 +120,56 @@ def select_psse_install(installs):
         except ValueError:
             continue
 
-        if 1 <= user_input <= len(installs):
+        if 0 < user_input <= len(pssbin_paths):
             # Less one due to zero based vs 1-based (len)
-            return user_input - 1
-
-def setup_psspy_env():
-    # We should look in any configuration files first and if they don't exist,
-    # then move onto automatically determining the install location.
-
-    # Reason for configuration file:
-    #   - the non-standard location search takes a while to complete.
-    #   - if some sort of prompt is needed to determine which is the correct
-    #     install to use, this only happens once.
-
-    # Possible locations for config files:
-    #   - python site-library or python directory
-    #     - allows for install specific options. A 2.5 and 2.7 install
-    #       wouldn't conflict.
-    #   - user's home
-    #     - Should be writable, regardless of corporate setups. May be moved
-    #       between computers, which may not work if they have different install
-    #       directories. A function to update this entry would be trivial to run
-    #       again, but non-savy users may not find it straight away.
-    #     - It could be set up to make a unique config name (computer name with
-    #       python version) for different computers it the config file is run on
-
-    # It would be preferable to only have one location for it so there is only
-    # one file to look at if things go wrong (instead of having: "First look
-    # here then if the possible entries in there don't match, look over
-    # there.")
-
-    if check_psspy_already_in_path():
-        # its working so lets just roll with it.
-        psspy_path = get_available_psspy_location()
-        if is_working_install():
-            ver_string = get_psse_version_string(psspy_path)
-            print ('[pssepath] psspy can already be loaded without running pssepath\n'
-                '[pssepath] Continuing with already present PSSE install:\n'
-                '[pssepath]    %s\n'
-                '[pssepath]    Install Path: %s' % (ver_string, psspy_path))
-            return
-        else:
-            # its not working, so lets throw an exception
-            Exception('[pssepath] A psspy which has been found not to work has'
-                'been identified at:\n'
-                '[pssepath]  %s\n')
+            break
+    add_dir_to_path(pssbin_paths[versions[user_input - 1]])
+    global initialized, psse_version
+    psse_version = versions[user_input - 1]
+    initialized = True
 
 
-    # Look to automatically find the path.
-    # Look in the usual suspects
-    pssbin_paths = []
-    paths = usual_psse_paths()
-    for p in paths:
-        pssbin_paths.extend(list(walk_for_pssbin(p)))
+# ============== Python version detection
+def read_magic_number(fname):
+    pyc_file = open(fname,'rb')
+    magic = pyc_file.read(2)
+    pyc_file.close()
+    return int(magic[::-1].encode('hex'),16)
 
-    for p in pssbin_paths[:]:
-        if not is_working_install(p):
-            pssbin_paths.remove(p)
+def find_file_on_path(fname):
+    """Return the first file on the path which matches fname."""
+    for path_dir in sys.path:
+        potential_file = os.path.join(path_dir, fname)
+        if os.path.isfile(potential_file):
+            return potential_file
 
-    if len(pssbin_paths) == 1:
-        # Only one way about it.
-        psse_location = pssbin_paths[0]
-    elif len(pssbin_paths) > 1:
-        # Not tested yet so will
-        install_index = select_psse_install(pssbin_paths)
-        psse_location = pssbin_paths[install_index]
-    else:
-        raise ImportError('No PSSE installs found in the usual locations.\n')
+def get_required_python_ver(psse_version):
+    probable_pyc = os.path.join(pssbin_paths[psse_version],'psspy.pyc')
+    if not os.path.isfile(probable_pyc):
+        # not in the suspected dir, perhaps abnormal install.
+        probable_pyc = find_file_on_path('psspy.pyc')
 
-    ver_string = get_psse_version_string(psse_location)
-    print ('[pssepath] Using %s\n'
-           '[pssepath]   Install Path: %s\n' %(ver_string, psse_location))
+    magic = read_magic_number(probable_pyc)
+    req_py_ver = pyc_magic_nums[magic]
 
-    # Time to add the path and get to work.
-    add_psse_path(psse_location)
+pyc_magic_nums = {20121: '1.5', 20121: '1.5.1', 20121: '1.5.2', 50428: '1.6',
+                  50823: '2.0', 50823: '2.0.1', 60202: '2.1', 60202: '2.1.1',
+                  60202: '2.1.2', 60717: '2.2', 62011: '2.3a0', 62021: '2.3a0',
+                  62011: '2.3a0', 62041: '2.4a0', 62051: '2.4a3',
+                  62061: '2.4b1', 62071: '2.5a0', 62081: '2.5a0',
+                  62091: '2.5a0', 62092: '2.5a0', 62101: '2.5b3',
+                  62111: '2.5b3', 62121: '2.5c1', 62131: '2.5c2',
+                  62151: '2.6a0', 62161: '2.6a1', 62171: '2.7a0',
+            }
 
-# ========== Python init
-# get the ball rolling on import.
-setup_psspy_env()
+# scrape pssbin paths from registry
+pssbin_paths = _get_psse_locations_dict()
+psse_version = None
+initialized = False
 
 if __name__ == "__main__":
-    # do the same thing as just importing. Probably can do better than that.
-    # Maybe running the module should produce some diagnostics about what
-    # installs are present etc.
-    setup_psspy_env()
+    # print the available psse installs.
+    print 'Found the following PSSE versions installed:\n'
+    versions = sorted(pssbin_paths.keys())
+    for i, ver in enumerate(versions):
+        print '  %i. PSSE Version %d\n' %(i+1, ver)
