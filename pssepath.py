@@ -74,7 +74,7 @@ def check_to_raise_compat_python_error(psse_version):
         selected_path = pssbin_paths[psse_version]
         req_python_ver = get_required_python_ver(selected_path)
         if req_python_ver != sys.winver:
-            raise PsseImportError("Current Python and PSSE version"
+            raise PsseImportError("Current Python and PSSE version "
                 "incompatible.\n\n"
                 "PSSE %s requires Python %s to run.\n"
                 "Current Python is Version %s.\n" % (psse_version,
@@ -119,9 +119,10 @@ def add_pssepath(pref_ver=None):
                 pass
             else:
                 selected_ver = ver
+                break
         if not selected_ver:
-            raise PsseImportError('No installed PSSE versions are compatible'
-                    'with the running version of Python (%s)\n')
+            raise PsseImportError('No installed PSSE versions are compatible '
+                    'with the running version of Python (%s)\n' % (sys.winver,))
 
 
     selected_path = pssbin_paths[selected_ver]
@@ -260,10 +261,11 @@ if check_psspy_already_in_path():
     if req_python != sys.winver:
         print ("WARNING: you have started a Python %s session when the\n"
                 "version required by the PSSE available in your path is\n"
-                "Python %s. \nEither use the required version of Python or,\n"
+                "Python %s.\n"
+                "Either use the required version of Python or,\n"
                 "if you have another version of PSSE installed, change your\n"
                 "PATH settings to point at the other install.\n\n"
-                "Run '%s pssepath.py' for more info about the versions\n"
+                "Run '%s -m pssepath' for more info about the versions\n"
                 "installed on your system.\n\n"% (sys.winver, req_python,
                     sys.executable))
 
