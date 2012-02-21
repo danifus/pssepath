@@ -90,11 +90,11 @@ def add_pssepath(pref_ver=None):
     if pref_ver:
         if pref_ver in pssbin_paths.keys():
             selected_ver = pref_ver
+            check_to_raise_compat_python_error(selected_ver)
         else:
             if len(pssbin_paths) == 1:
                 ver_string = ('the installed version: %s' %
                         (pssbin_paths.keys()[0],))
-                check_to_raise_compat_python_error(psse_version)
             else:
                 psses = ', '.join([str(x) for x in pssbin_paths.keys()])
                 ver_string = 'an installed version: %s' % psses
@@ -114,7 +114,7 @@ def add_pssepath(pref_ver=None):
         # raise an error.
         for ver in rev_sorted_vers:
             try:
-                check_to_raise_compat_python_error(psse_version)
+                check_to_raise_compat_python_error(ver)
             except PsseImportError:
                 pass
             else:
@@ -137,9 +137,8 @@ def select_pssepath():
     """Produce a prompt to select the version of PSSE"""
 
     print 'Please select from the available PSSE installs:\n'
+    print_psse_selection()
     versions = sorted(pssbin_paths.keys())
-    for i, ver in enumerate(versions):
-        print '  %i. PSSE Version %d\n' %(i+1, ver)
     while True:
         try:
             user_input = int(raw_input('Enter a number from the above '
@@ -150,6 +149,7 @@ def select_pssepath():
         if 0 < user_input <= len(pssbin_paths):
             # Less one due to zero based vs 1-based (len)
             break
+
     selected_path = pssbin_paths[versions[user_input - 1]]
     check_to_raise_compat_python_error(versions[user_input - 1])
     add_dir_to_path(selected_path)
@@ -159,6 +159,18 @@ def select_pssepath():
     req_python_exec = os.path.join(python_paths[req_python_ver],'python.exe')
     initialized = True
 
+def print_psse_selection():
+
+    versions = sorted(pssbin_paths.keys())
+    for i, ver in enumerate(versions):
+        req_python_ver = get_required_python_ver(ver)
+        python_str = 'Requires Python %s' % (req_python_ver)
+        if req_python_ver == sys.winver:
+            python_str += ' (Current running Python)'
+        elif req_python_ver in python_paths.keys():
+            python_str += ' (Installed)'
+        print ('  %i. PSSE Version %d\n'
+               '      %s' %(i+1, ver, python_str))
 
 # ============== Python version detection
 def read_magic_number(fname):
