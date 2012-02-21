@@ -163,7 +163,7 @@ def print_psse_selection():
 
     versions = sorted(pssbin_paths.keys())
     for i, ver in enumerate(versions):
-        req_python_ver = get_required_python_ver(ver)
+        req_python_ver = get_required_python_ver(pssbin_paths[ver])
         python_str = 'Requires Python %s' % (req_python_ver)
         if req_python_ver == sys.winver:
             python_str += ' (Current running Python)'
@@ -283,7 +283,5 @@ if check_psspy_already_in_path():
 if __name__ == "__main__":
     # print the available psse installs.
     print 'Found the following PSSE versions installed:\n'
-    versions = sorted(pssbin_paths.keys())
-    for i, ver in enumerate(versions):
-        print '  %i. PSSE Version %d\n' %(i+1, ver)
-    raw_input("Press any key to continue...")
+    print_psse_selection()
+    raw_input("Press Enter to continue...")
