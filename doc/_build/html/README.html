@@ -1,0 +1,227 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pssepath - Easy PSSE Python coding &mdash; PSSEPATH 0.3 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="PSSEPATH 0.3 documentation" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li><a href="index.html">PSSEPATH 0.3 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="pssepath-easy-psse-python-coding">
+<h1>pssepath - Easy PSSE Python coding<a class="headerlink" href="#pssepath-easy-psse-python-coding" title="Permalink to this headline">¶</a></h1>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">author:</th><td class="field-body">whit. (whit.com.au)</td>
+</tr>
+</tbody>
+</table>
+<p>pssepath simplifies the code required to setup the Python environment necessary
+to use the PSSE API. The usage of this package (after installation) would be as
+follows:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">pssepath</span>
+<span class="n">pssepath</span><span class="o">.</span><span class="n">add_pssepath</span><span class="p">()</span>
+<span class="kn">import</span> <span class="nn">psspy</span>
+</pre></div>
+</div>
+<p>Notice that using this module makes the PSSE system files available for use
+while avoiding making modifications to system paths or hardcoding the location
+of the PSSE system folders. This makes PSSE easy to use.</p>
+<p>Furthermore, by including pssepath with any scripts you distribute, others will
+be able to use your code without having to edit your code to suit their
+varying install paths (such as different versions of PSSE).</p>
+<p>It can also provide information about which version of Python to use with a
+particular install of PSSE to avoid &#8220;ImportError: Bad magic number...&#8221;.</p>
+<div class="section" id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<p>To install from source:</p>
+<div class="highlight-python"><pre>python setup.py install</pre>
+</div>
+</div>
+<div class="section" id="usage">
+<h2>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h2>
+<p>pssepath provides 3 methods for setting up the PSSE paths:</p>
+<dl class="method">
+<dt id="pssepath.add_pssepath">
+<tt class="descclassname">pssepath.</tt><tt class="descname">add_pssepath</tt><big>(</big><big>)</big><a class="headerlink" href="#pssepath.add_pssepath" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds the most recent version of PSSE that works with the currently
+running version of Python.</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">pssepath.</tt><tt class="descname">add_pssepath</tt><big>(</big><em>&lt;version&gt;</em><big>)</big></dt>
+<dd><p>Adds the requested version of PSSE. Remember that specifying a version
+number may make your code less portable if you or your colleagues ever use a
+different version.  pssepath.add_pssepath(33)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pssepath.select_pssepath">
+<tt class="descclassname">pssepath.</tt><tt class="descname">select_pssepath</tt><big>(</big><big>)</big><a class="headerlink" href="#pssepath.select_pssepath" title="Permalink to this definition">¶</a></dt>
+<dd><p>Produces a menu of all the PSSE installs on your system, along with
+the required version of Python.</p>
+</dd></dl>
+
+<p>If you have set up your system to have the PSSE system files on the system path
+at all times, pssepath will only use these files.</p>
+<p>For information about the PSSE versions installed on your system, either:</p>
+<blockquote>
+<div><ul class="simple">
+<li>execute the pssepath.py file from windows; or</li>
+<li>run <tt class="docutils literal"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">pssepath</span></tt> You may have to specify the python install
+path: ie. <tt class="docutils literal"><span class="pre">c:\Python25\python</span> <span class="pre">-m</span> <span class="pre">pssepath</span></tt></li>
+</ul>
+</div></blockquote>
+<p>This will provide you with a summary similar to the following:</p>
+<div class="highlight-python"><pre>Found the following versions of PSSE installed:
+
+    1. PSSE version 32
+        Requires Python 2.5 (Currently running)
+    2. PSSE version XX
+        Requires Python 2.X (Installed)
+    3. PSSE version XX
+        Requires Python 2.X
+    etc.</pre>
+</div>
+<p>The status next to the Python version indicates the installation status of the
+required Python for the particular PSSE install.</p>
+<dl class="docutils">
+<dt>Currently running</dt>
+<dd>indicates that the Python version used to invoke the script
+(&#8220;c:Python25python&#8221; if invoked as &#8220;c:Python25python -m pssepath&#8221;) is
+appropriate for that version.</dd>
+<dt>Installed</dt>
+<dd>indicates that a Python version different to the one used to invoke the
+script is required for that PSSE version, but that it is already installed
+on your system.</dd>
+<dt>&lt;nothing&gt;</dt>
+<dd>The absence of a status means that a different version of Python is
+required to run that version of PSSE and it is not installed on your
+system. As Python comes bundled with PSSE, this status is unlikely.</dd>
+</dl>
+<p>Ensuring you use the correct version of Python for the version of PSSE you are
+running will avoid seeing <tt class="docutils literal"><span class="pre">ImportError:</span> <span class="pre">Bad</span> <span class="pre">magic</span> <span class="pre">number...</span></tt> ever again.</p>
+</div>
+<div class="section" id="license">
+<h2>License<a class="headerlink" href="#license" title="Permalink to this headline">¶</a></h2>
+<p>This program is released under the very permissive MIT license. You may freely
+use it for commercial purposes, without needing to provide modified source.</p>
+<p>Read the LICENSE file for more information.</p>
+</div>
+<div class="section" id="contributers">
+<h2>Contributers<a class="headerlink" href="#contributers" title="Permalink to this headline">¶</a></h2>
+<p>Discussion about this module was conducted at the <a class="reference external" href="http://forum.whit.com.au/psse-help-forum/question/3/how-do-i-import-the-psspy-module-in-a-python">whit psse forum</a> involving the following members:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Chip Webber</li>
+<li>JervisW</li>
+<li>Daniel Hillier</li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="improvements-or-suggestions">
+<h2>Improvements or suggestions<a class="headerlink" href="#improvements-or-suggestions" title="Permalink to this headline">¶</a></h2>
+<p>Visit the <a class="reference external" href="http://forum.whit.com.au/psse-help-forum/question/3/how-do-i-import-the-psspy-module-in-a-python">whit forum</a></p>
+<p>See also:</p>
+<blockquote>
+<div><ul class="simple">
+<li>github: <a class="reference external" href="https://github.com/danaran/pssepath">https://github.com/danaran/pssepath</a></li>
+<li>contact: daniel .at. whit.com.au</li>
+</ul>
+</div></blockquote>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">pssepath - Easy PSSE Python coding</a><ul>
+<li><a class="reference internal" href="#installation">Installation</a></li>
+<li><a class="reference internal" href="#usage">Usage</a></li>
+<li><a class="reference internal" href="#license">License</a></li>
+<li><a class="reference internal" href="#contributers">Contributers</a></li>
+<li><a class="reference internal" href="#improvements-or-suggestions">Improvements or suggestions</a></li>
+</ul>
+</li>
+</ul>
+
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/README.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li><a href="index.html">PSSEPATH 0.3 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Daniel Hillier, Chip Webber.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>
