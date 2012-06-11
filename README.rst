@@ -5,16 +5,28 @@ pssepath - Easy PSSE Python coding
 :author: whit. (whit.com.au)
 
 pssepath simplifies the code required to setup the Python environment necessary
-to use the PSSE API. The usage of this package (after installation) would be as
-follows::
+to use the PSSE API. Using pssepath all you have to do is::
 
     import pssepath
     pssepath.add_pssepath()
+
     import psspy
 
 Notice that using this module makes the PSSE system files available for use
 while avoiding making modifications to system paths or hardcoding the location
 of the PSSE system folders. This makes PSSE easy to use.
+
+Without pssepath, you have to do something like this::
+
+    import os
+    import sys
+
+    PSSE_LOCATION = r"C:\Program Files\PTI\PSSE32\PSSBIN"
+    sys.path.append(PSSE_LOCATION)
+    os.environ['PATH'] = os.environ['PATH'] + ';' +  PSSE_LOCATION 
+
+    import psspy
+
 
 Furthermore, by including pssepath with any scripts you distribute, others will
 be able to use your code without having to edit your code to suit their
@@ -97,6 +109,23 @@ This program is released under the very permissive MIT license. You may freely
 use it for commercial purposes, without needing to provide modified source.
 
 Read the LICENSE file for more information.
+
+Tips on managing multiple Python versions
+-------------------------------------------
+I like to use batch files that point to a specific python version.  For
+example:: 
+
+    $ more C:\bin\python25.bat
+    @C:\Python25\python.exe %*
+
+Where the PATH includes ``c:\bin``.  Now you can run python scripts with the 
+command::
+
+    python25 myscript.py args
+
+instead of::
+
+    c:\Python25\python.exe myscript.py args
 
 Contributers
 --------------
