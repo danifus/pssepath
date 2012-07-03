@@ -87,21 +87,27 @@ def add_dir_to_path(psse_path):
     """Add psse_path to 'sys.path' and 'os.environ['PATH'].
 
     This affects the os and sys modules, thus these side-effects are global.
+    Adds them to the start of the path variables so that they are always used
+    in preference.
 
     This is all side-effects which is not the prettiest.
     """
-    sys.path.append(psse_path)
-    os.environ['PATH'] = os.environ['PATH'] + ';' +  psse_path
+    sys.path.insert(0, psse_path)
+    os.environ['PATH'] = psse_path + ';' + os.environ['PATH']
 
 def rem_dir_from_path(psse_path):
-    """Remove psse_path from 'sys.path' and 'os.environ['PATH']."""
+    """Remove psse_path from 'sys.path' and 'os.environ['PATH'].
+
+    list.remove(bla) will always remove the first instance of bla from the
+    list. Thus this will reverse any changes done by add_dir_to_path().
+    """
 
     if psse_path in sys.path:
         sys.path.remove(psse_path)
     if psse_path in os.environ['PATH']:
         sys_paths = os.environ['PATH'].split(';')
         sys_paths.remove(psse_path)
-        os.environ.update({'PATH': ';'.join(sys_paths)})
+        os.environ['PATH'] = ';'.join(sys_paths)
 
 def _get_psse_locations_dict():
     pti_key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, 'SOFTWARE\\PTI')
