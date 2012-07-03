@@ -86,9 +86,9 @@ The status next to the Python version indicates the installation status of the
 required Python for the particular PSSE install.
 
 Currently running
-    indicates that the Python version used to invoke the script
-    ("c:\Python25\python" if invoked as "c:\Python25\python -m pssepath") is
-    appropriate for that version.
+    indicates the Python version used to invoke the script
+    (``c:\Python25\python`` if invoked as ``c:\Python25\python -m pssepath``) is
+    appropriate for that version of PSSE.
     
 Installed
     indicates that a Python version different to the one used to invoke the
