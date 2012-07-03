@@ -13,36 +13,7 @@ def check_psspy_already_in_path():
     reconfigured.
     """
     syspath = find_file_on_path('psspy.pyc', sys.path)
-    path_noenviron_warning = dedent("""\
-       pssepath: Warning - PSSBIN found on sys.path, but not os.environ['PATH'].
-                           Running pssepath.add_pssepath() will reconfigure.
 
-                 Running pssepath.add_pssepath() will attempt to configure your
-                 paths for you.  If you wish to find the root cause of this
-                 message, check your Python scripts to see if they set up these
-                 variables and remove that code.  If the scripts do not attempt
-                 to configure these variables, you may need to edit your
-                 Windows PATH variables from windows, as they may have been
-                 configured there.
-                 """)
-    pathmismatch_warning = dedent("""\
-       pssepath: Warning - PSSBIN path mismatch.
-                           Running pssepath.add_pssepath() will reconfigure.
-
-                 Two different paths for PSSBIN were found in sys.path and
-                 os.environ[PATH].
-
-                 sys.path:           %s
-                 os.environ['PATH']: %s
-
-                 Running pssepath.add_pssepath() will attempt to configure your
-                 paths for you.  If you wish to find the root cause of this
-                 message, check your Python scripts to see if they set up these
-                 variables and remove that code.  If the scripts do not attempt
-                 to configure these variables, you may need to edit your
-                 Windows PATH variables from windows, as they may have been
-                 configured there.
-                 """)
     if syspath:
         # file in one of the files on the sys.path (python's path) list.
         envpaths = os.environ['PATH'].split(';')
@@ -53,9 +24,9 @@ def check_psspy_already_in_path():
             if syspath == envpath:
                 return True
             else:
-                print pathmismatch_warning % (syspath, envpath)
+                print_pathmismatch_warning(syspath, envpath)
         else:
-            print path_noenviron_warning
+            print_path_noenviron_warning()
 
     return False
 
@@ -68,6 +39,49 @@ def check_initialized(fn):
         else:
             fn(*args, **kwargs)
     return wrapped
+
+def run_once(fn):
+    def wrapped(*args, **kwargs):
+        if not getattr(fn, 'hasrun', False):
+            setattr(fn, 'hasrun', True)
+            fn(*args, **kwargs)
+    return wrapped
+
+@run_once
+def print_path_noenviron_warning():
+    print dedent("""\
+       pssepath: Warning - PSSBIN found on sys.path, but not os.environ['PATH'].
+                           Running pssepath.add_pssepath() will reconfigure.
+
+                 Running pssepath.add_pssepath() will attempt to reconfigure
+                 your paths for you.  If you wish to find the root cause of
+                 this message, check your Python scripts to see if they set up
+                 sys.path or os.environ['PATH'] and remove that code.  If the
+                 scripts do not attempt to configure these variables, you may
+                 need to check your Windows PATH variables from windows, as they
+                 may have been configured there.
+                 """)
+
+@run_once
+def print_pathmismatch_warning(syspath, envpath):
+    print (dedent("""\
+       pssepath: Warning - PSSBIN path mismatch.
+                           Running pssepath.add_pssepath() will reconfigure.
+
+                 Two different paths for PSSBIN were found in sys.path and
+                 os.environ[PATH].
+
+                 sys.path:           %s
+                 os.environ['PATH']: %s
+
+                 Running pssepath.add_pssepath() will attempt to reconfigure
+                 your paths for you.  If you wish to find the root cause of
+                 this message, check your Python scripts to see if they set up
+                 sys.path or os.environ['PATH'] and remove that code.  If the
+                 scripts do not attempt to configure these variables, you may
+                 need to check your Windows PATH variables from windows, as they
+                 may have been configured there.
+                 """) % (syspath, envpath))
 
 def add_dir_to_path(psse_path):
     """Add psse_path to 'sys.path' and 'os.environ['PATH'].
