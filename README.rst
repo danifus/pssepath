@@ -142,4 +142,4 @@ Visit the `whit forum <http://forum.whit.com.au/psse-help-forum/question/3/how-d
 See also:
 
     - github: https://github.com/danaran/pssepath
-    - contact: daniel .at. whit.com.au
+    - contact: daniel@whit.com.au
