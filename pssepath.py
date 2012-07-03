@@ -297,6 +297,11 @@ def _get_python_locations_dict():
     _winreg.CloseKey(python_key)
     return python_paths
 
+
+#####
+##### Execution starts here on import
+#####
+
 pyc_magic_nums = {20121: '1.5', 20121: '1.5.1', 20121: '1.5.2', 50428: '1.6',
                   50823: '2.0', 50823: '2.0.1', 60202: '2.1', 60202: '2.1.1',
                   60202: '2.1.2', 60717: '2.2', 62011: '2.3a0', 62021: '2.3a0',

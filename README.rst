@@ -75,7 +75,7 @@ This will provide you with a summary similar to the following::
     Found the following versions of PSSE installed:
 
         1. PSSE version 32
-            Requires Python 2.5 (Currently running)
+            Requires Python 2.5 (Current running Python)
         2. PSSE version XX
             Requires Python 2.X (Installed)
         3. PSSE version XX
@@ -85,7 +85,7 @@ This will provide you with a summary similar to the following::
 The status next to the Python version indicates the installation status of the
 required Python for the particular PSSE install.
 
-Currently running
+Current running Python
     indicates the Python version used to invoke the script
     (``c:\Python25\python`` if invoked as ``c:\Python25\python -m pssepath``) is
     appropriate for that version of PSSE.
