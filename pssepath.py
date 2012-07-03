@@ -180,9 +180,17 @@ def read_magic_number(fname):
     pyc_file.close()
     return int(magic[::-1].encode('hex'),16)
 
-def find_file_on_path(fname):
-    """Return the first file on the path which matches fname."""
-    for path_dir in sys.path:
+def find_file_on_path(fname, dir_checklist=None):
+    """Return the first file on the path which matches fname.
+
+    By default, this function will search sys.path for a matching file. This
+    can be overridden by passing a list of dirs to be checked in as
+    'dir_checklist'.
+    """
+    if not dir_checklist:
+        dir_checklist = sys.path
+
+    for path_dir in dir_checklist:
         potential_file = os.path.join(path_dir, fname)
         if os.path.isfile(potential_file):
             return potential_file
