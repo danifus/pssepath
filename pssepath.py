@@ -1,18 +1,63 @@
 import os
 import sys
+from textwrap import dedent
 import _winreg
 
 class PsseImportError(Exception):
     pass
 
 def check_psspy_already_in_path():
-    """Return boolean if 'import psspy' works when this function is called.
+    """Return True if psspy.pyc in the sys.path and os.environ['PATH'] dirs.
+
+    Otherwise, print a warning message and return False so the paths get
+    reconfigured.
     """
-    try:
-        import psspy
-    except ImportError:
-        return False
-    return True
+    syspath = find_file_on_path('psspy.pyc', sys.path)
+    path_noenviron_warning = dedent("""\
+       pssepath: Warning - PSSBIN found on sys.path, but not os.environ['PATH'].
+                           Running pssepath.add_pssepath() will reconfigure.
+
+                 Running pssepath.add_pssepath() will attempt to configure your
+                 paths for you.  If you wish to find the root cause of this
+                 message, check your Python scripts to see if they set up these
+                 variables and remove that code.  If the scripts do not attempt
+                 to configure these variables, you may need to edit your
+                 Windows PATH variables from windows, as they may have been
+                 configured there.
+                 """)
+    pathmismatch_warning = dedent("""\
+       pssepath: Warning - PSSBIN path mismatch.
+                           Running pssepath.add_pssepath() will reconfigure.
+
+                 Two different paths for PSSBIN were found in sys.path and
+                 os.environ[PATH].
+
+                 sys.path:           %s
+                 os.environ['PATH']: %s
+
+                 Running pssepath.add_pssepath() will attempt to configure your
+                 paths for you.  If you wish to find the root cause of this
+                 message, check your Python scripts to see if they set up these
+                 variables and remove that code.  If the scripts do not attempt
+                 to configure these variables, you may need to edit your
+                 Windows PATH variables from windows, as they may have been
+                 configured there.
+                 """)
+    if syspath:
+        # file in one of the files on the sys.path (python's path) list.
+        envpaths = os.environ['PATH'].split(';')
+        envpath = find_file_on_path('psspy.pyc', envpaths)
+        if envpath:
+            # lets check to see that PSSBIN is also on the windows path. If it
+            # isn't, psspy will not function properly.
+            if syspath == envpath:
+                return True
+            else:
+                print pathmismatch_warning % (syspath, envpath)
+        else:
+            print path_noenviron_warning
+
+    return False
 
 def check_initialized(fn):
     def wrapped(*args, **kwargs):
