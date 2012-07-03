@@ -61,10 +61,10 @@ def check_psspy_already_in_path():
 
 def check_initialized(fn):
     def wrapped(*args, **kwargs):
-        if check_psspy_already_in_path():
+        if initialized:
+            print "psspath has already added PSSBIN to the system, continuing."
+        elif check_psspy_already_in_path():
             print "PSSBIN already in path, adding PSSBIN from pssepath skipped."
-        elif initialized:
-            print "psspath has already been executed, continuing."
         else:
             fn(*args, **kwargs)
     return wrapped
