@@ -129,7 +129,7 @@ instead of::
 
 Contributers
 --------------
-Discussion about this module was conducted at the `whit psse forum <https://psspy.org/psse-help-forum/question/3/how-do-i-import-the-psspy-module-in-a-python>`_ involving the following members:
+Discussion about this module was conducted at the `Python for PSSE Forum <https://psspy.org/psse-help-forum/question/3/how-do-i-import-the-psspy-module-in-a-python>`_ involving the following members:
 
       - Chip Webber
       - JervisW
@@ -137,7 +137,7 @@ Discussion about this module was conducted at the `whit psse forum <https://pssp
 
 Improvements or suggestions
 -----------------------------
-Visit the `whit forum <https://psspy.org/psse-help-forum/question/3/how-do-i-import-the-psspy-module-in-a-python>`_
+Visit the `Python for PSSE Forum <https://psspy.org/psse-help-forum/question/3/how-do-i-import-the-psspy-module-in-a-python>`_
 
 See also:
 
@@ -145,4 +145,4 @@ See also:
     - contact: daniel@whit.com.au
 
 For any other questions about Python and PSSE, feel free to raise them on the
-`whit psspy.org forum <https://psspy.org>`_
+`Python for PSSE Forum <https://psspy.org>`_
