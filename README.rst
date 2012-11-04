@@ -129,7 +129,7 @@ instead of::
 
 Contributers
 --------------
-Discussion about this module was conducted at the `whit psse forum <https://forum.whit.com.au/psse-help-forum/question/3/how-do-i-import-the-psspy-module-in-a-python>`_ involving the following members:
+Discussion about this module was conducted at the `whit psse forum <https://psspy.org/psse-help-forum/question/3/how-do-i-import-the-psspy-module-in-a-python>`_ involving the following members:
 
       - Chip Webber
       - JervisW
@@ -137,9 +137,12 @@ Discussion about this module was conducted at the `whit psse forum <https://foru
 
 Improvements or suggestions
 -----------------------------
-Visit the `whit forum <http://forum.whit.com.au/psse-help-forum/question/3/how-do-i-import-the-psspy-module-in-a-python>`_
+Visit the `whit forum <https://psspy.org/psse-help-forum/question/3/how-do-i-import-the-psspy-module-in-a-python>`_
 
 See also:
 
     - github: https://github.com/danaran/pssepath
     - contact: daniel@whit.com.au
+
+For any other questions about Python and PSSE, feel free to raise them on the
+`whit psspy.org forum <https://psspy.org>`_
