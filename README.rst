@@ -23,7 +23,7 @@ Without pssepath, you have to do something like this::
 
     PSSE_LOCATION = r"C:\Program Files\PTI\PSSE32\PSSBIN"
     sys.path.append(PSSE_LOCATION)
-    os.environ['PATH'] = os.environ['PATH'] + ';' +  PSSE_LOCATION 
+    os.environ['PATH'] = os.environ['PATH'] + ';' +  PSSE_LOCATION
 
     import psspy
 
@@ -89,13 +89,13 @@ Current running Python
     indicates the Python version used to invoke the script
     (``c:\Python25\python`` if invoked as ``c:\Python25\python -m pssepath``) is
     appropriate for that version of PSSE.
-    
+
 Installed
     indicates that a Python version different to the one used to invoke the
     script is required for that PSSE version, but that it is already installed
-    on your system.  
+    on your system.
 
-<nothing>    
+<nothing>
      The absence of a status means that a different version of Python is
      required to run that version of PSSE and it is not installed on your
      system. As Python comes bundled with PSSE, this status is unlikely.
@@ -113,12 +113,12 @@ Read the LICENSE file for more information.
 Tips on managing multiple Python versions
 -------------------------------------------
 I like to use batch files that point to a specific python version.  For
-example:: 
+example::
 
     $ more C:\bin\python25.bat
     @C:\Python25\python.exe %*
 
-Where the PATH includes ``c:\bin``.  Now you can run python scripts with the 
+Where the PATH includes ``c:\bin``.  Now you can run python scripts with the
 command::
 
     python25 myscript.py args
@@ -129,9 +129,9 @@ instead of::
 
 Contributers
 --------------
-Discussion about this module was conducted at the `whit psse forum <http://forum.whit.com.au/psse-help-forum/question/3/how-do-i-import-the-psspy-module-in-a-python>`_ involving the following members:
+Discussion about this module was conducted at the `whit psse forum <https://forum.whit.com.au/psse-help-forum/question/3/how-do-i-import-the-psspy-module-in-a-python>`_ involving the following members:
 
-      - Chip Webber 
+      - Chip Webber
       - JervisW
       - Daniel Hillier
 
