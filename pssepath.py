@@ -110,7 +110,12 @@ def rem_dir_from_path(psse_path):
         os.environ['PATH'] = ';'.join(sys_paths)
 
 def _get_psse_locations_dict():
-    pti_key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, 'SOFTWARE\\PTI')
+    if os_arch == "Win64":
+        pti_key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE,
+                                  'SOFTWARE\\Wow6432Node\\PTI')
+    else:
+        pti_key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE,
+                                  'SOFTWARE\\PTI')
 
     pssbin_paths = {}
 
@@ -271,8 +276,12 @@ def get_required_python_ver(pssbin):
     return pyc_magic_nums[magic][:3]
 
 def _get_python_locations_dict():
-    python_key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE,
-            'SOFTWARE\\Python\\PythonCore')
+    if os_arch == "Win64":
+        python_key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE,
+                                     'SOFTWARE\\Wow6432Node\\Python\\PythonCore')
+    else:
+        python_key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE,
+                                     'SOFTWARE\\Python\\PythonCore')
 
     python_paths = {}
 
@@ -297,6 +306,14 @@ def _get_python_locations_dict():
     _winreg.CloseKey(python_key)
     return python_paths
 
+def _get_os_architecture():
+
+    try:
+        os6432_key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE,
+            'SOFTWARE\\Wow6432Node')
+        return "Win64"
+    except WindowsError:
+        return "Win32"
 
 #####
 ##### Execution starts here on import
@@ -363,6 +380,7 @@ pyc_magic_nums = {  20121: '1.5',
 
 
 # scrape pssbin paths from registry
+os_arch = _get_os_architecture()
 pssbin_paths = _get_psse_locations_dict()
 python_paths = _get_python_locations_dict()
 psse_version = None
