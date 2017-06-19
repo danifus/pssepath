@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import os
 import sys
 from functools import wraps
@@ -43,9 +45,9 @@ def check_initialized(fn):
     @wraps(fn)
     def wrapped(*args, **kwargs):
         if initialized:
-            print "psspath has already added PSSBIN to the system, continuing."
+            print("psspath has already added PSSBIN to the system, continuing.")
         elif check_psspy_already_in_path():
-            print "PSSBIN already in path, adding PSSBIN from pssepath skipped."
+            print("PSSBIN already in path, adding PSSBIN from pssepath skipped.")
         else:
             fn(*args, **kwargs)
     return wrapped
@@ -86,7 +88,8 @@ def memoize(fn):
 
 @run_once
 def print_path_noenviron_warning():
-    print dedent("""\
+    print(
+        dedent("""\
        pssepath: Warning - PSSBIN found on sys.path, but not os.environ['PATH'].
                            Running pssepath.add_pssepath() will reconfigure.
 
@@ -98,11 +101,12 @@ def print_path_noenviron_warning():
                  need to check your Windows PATH variables from windows, as they
                  may have been configured there.
                  """)
+    )
 
 
 @run_once
 def print_pathmismatch_warning(syspath, envpath):
-    print (dedent("""\
+    print(dedent("""\
        pssepath: Warning - PSSBIN path mismatch.
                            Running pssepath.add_pssepath() will reconfigure.
 
@@ -119,7 +123,8 @@ def print_pathmismatch_warning(syspath, envpath):
                  scripts do not attempt to configure these variables, you may
                  need to check your Windows PATH variables from windows, as they
                  may have been configured there.
-                 """) % (syspath, envpath))
+                 """) % (syspath, envpath)
+          )
 
 
 def add_dir_to_path(psse_path):
@@ -259,7 +264,7 @@ def add_pssepath(pref_ver=None):
 def select_pssepath():
     """Produce a prompt to select the version of PSSE"""
 
-    print 'Please select from the available PSSE installs:\n'
+    print('Please select from the available PSSE installs:\n')
     print_psse_selection()
     pssbin_paths = get_psse_locations_dict()
     versions = sorted(pssbin_paths.keys())
@@ -297,8 +302,8 @@ def print_psse_selection():
             python_str += ' (Current running Python)'
         elif req_python_ver in get_python_locations_dict().keys():
             python_str += ' (Installed)'
-        print ('  %i. PSSE Version %d\n'
-               '      %s' % (i+1, ver, python_str))
+        print('  %i. PSSE Version %d\n'
+              '      %s' % (i+1, ver, python_str))
 
 
 # ============== Python version detection
@@ -510,7 +515,7 @@ def init_check():
         req_python = get_required_python_ver(probable_folder)
 
         if req_python != sys.winver:
-            print (
+            print(
                 "WARNING: you have started a Python %s session when the\n"
                 "version required by the PSSE available in your path is\n"
                 "Python %s.\n"
@@ -529,8 +534,10 @@ def init_check():
                 # Very unlikely
                 # Don't have the required version of python to run this version of
                 # psse.  Something is not right...
-                print ("Required version of python (%s) not located in registry.\n"
-                       % (req_python,))
+                print(
+                    "Required version of python (%s) not located in registry.\n"
+                    % (req_python,)
+                )
         else:
             set_status(req_python_exec=sys.executable)
 
@@ -538,6 +545,6 @@ def init_check():
 if __name__ == "__main__":
     # print the available psse installs.
     init_check()
-    print 'Found the following PSSE versions installed:\n'
+    print('Found the following PSSE versions installed:\n')
     print_psse_selection()
     raw_input("Press Enter to continue...")
