@@ -1,7 +1,13 @@
 import os
 import sys
+from functools import wraps
 from textwrap import dedent
 import _winreg
+
+
+psse_version = None
+req_python_exec = None
+initialized = False
 
 
 class PsseImportError(Exception):
@@ -34,6 +40,7 @@ def check_psspy_already_in_path():
 
 
 def check_initialized(fn):
+    @wraps(fn)
     def wrapped(*args, **kwargs):
         if initialized:
             print "psspath has already added PSSBIN to the system, continuing."
@@ -45,11 +52,36 @@ def check_initialized(fn):
 
 
 def run_once(fn):
+    @wraps(fn)
     def wrapped(*args, **kwargs):
         if not getattr(fn, 'hasrun', False):
             setattr(fn, 'hasrun', True)
             fn(*args, **kwargs)
     return wrapped
+
+
+def memoize(fn):
+    """
+    args and kwargs to fn must be hashable.
+    """
+    cache = {}
+
+    @wraps(fn)
+    def wrap(*args, **kwargs):
+        if args:
+            key_args = frozenset(args)
+        else:
+            key_args = None
+        if kwargs:
+            key_kwargs = frozenset(kwargs.items())
+        else:
+            key_kwargs = None
+
+        key = (key_args, key_kwargs)
+        if key not in cache:
+            cache[key] = fn(*args, **kwargs)
+        return cache[key]
+    return wrap
 
 
 @run_once
@@ -118,13 +150,14 @@ def rem_dir_from_path(psse_path):
         os.environ['PATH'] = ';'.join(sys_paths)
 
 
-def _get_psse_locations_dict():
-    if os_arch == "Win64":
-        pti_key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE,
-                                  'SOFTWARE\\Wow6432Node\\PTI')
+@memoize
+def get_psse_locations_dict():
+    if is_win64():
+        pti_key = _winreg.OpenKey(
+            _winreg.HKEY_LOCAL_MACHINE, 'SOFTWARE\\Wow6432Node\\PTI')
     else:
-        pti_key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE,
-                                  'SOFTWARE\\PTI')
+        pti_key = _winreg.OpenKey(
+            _winreg.HKEY_LOCAL_MACHINE, 'SOFTWARE\\PTI')
 
     pssbin_paths = {}
 
@@ -150,8 +183,8 @@ def _get_psse_locations_dict():
 
 
 def check_to_raise_compat_python_error(psse_version):
-    if not ignore_python_mismatch:
-        selected_path = pssbin_paths[psse_version]
+    if not module_settings['ignore_python_mismatch']:
+        selected_path = get_psse_locations_dict()[psse_version]
         req_python_ver = get_required_python_ver(selected_path)
         if req_python_ver != sys.winver:
             raise PsseImportError(
@@ -170,6 +203,7 @@ def add_pssepath(pref_ver=None):
     Try to import the requested version of PSSE. If the requested version
     doesn't work, raise an exception. By default, import the latest version.
     """
+    pssbin_paths = get_psse_locations_dict()
     if pref_ver:
         if pref_ver in pssbin_paths.keys():
             selected_ver = pref_ver
@@ -187,7 +221,7 @@ def add_pssepath(pref_ver=None):
                 'Attempted to initialize PSSE version %s but it was not present.\n'
                 'Let pssepath select the latest version by not specifying a '
                 'version when\n'
-                'calling "pssepath.import_psse()", or select %s'
+                'calling "pssepath.add_pssepath()", or select %s'
                 % (pref_ver, ver_string)
             )
     else:
@@ -213,11 +247,12 @@ def add_pssepath(pref_ver=None):
 
     selected_path = pssbin_paths[selected_ver]
     add_dir_to_path(selected_path)
-    global initialized, psse_version, req_python_exec
-    psse_version = selected_ver
     req_python_ver = get_required_python_ver(selected_path)
-    req_python_exec = os.path.join(python_paths[req_python_ver], 'python.exe')
-    initialized = True
+    req_python_exec = os.path.join(
+        get_python_locations_dict()[req_python_ver], 'python.exe')
+    set_status(
+        req_python_exec=req_python_exec, psse_version=selected_ver,
+        initialized=True)
 
 
 @check_initialized
@@ -226,6 +261,7 @@ def select_pssepath():
 
     print 'Please select from the available PSSE installs:\n'
     print_psse_selection()
+    pssbin_paths = get_psse_locations_dict()
     versions = sorted(pssbin_paths.keys())
     while True:
         try:
@@ -242,22 +278,24 @@ def select_pssepath():
     selected_path = pssbin_paths[versions[user_input - 1]]
     check_to_raise_compat_python_error(versions[user_input - 1])
     add_dir_to_path(selected_path)
-    global initialized, psse_version, req_python_exec
-    psse_version = versions[user_input - 1]
     req_python_ver = get_required_python_ver(selected_path)
-    req_python_exec = os.path.join(python_paths[req_python_ver], 'python.exe')
-    initialized = True
+    req_python_exec = os.path.join(
+        get_python_locations_dict()[req_python_ver], 'python.exe')
+    set_status(
+        req_python_exec=req_python_exec, psse_version=versions[user_input - 1],
+        initialized=True)
 
 
 def print_psse_selection():
 
+    pssbin_paths = get_psse_locations_dict()
     versions = sorted(pssbin_paths.keys())
     for i, ver in enumerate(versions):
         req_python_ver = get_required_python_ver(pssbin_paths[ver])
         python_str = 'Requires Python %s' % (req_python_ver)
         if req_python_ver == sys.winver:
             python_str += ' (Current running Python)'
-        elif req_python_ver in python_paths.keys():
+        elif req_python_ver in get_python_locations_dict().keys():
             python_str += ' (Installed)'
         print ('  %i. PSSE Version %d\n'
                '      %s' % (i+1, ver, python_str))
@@ -295,11 +333,12 @@ def get_required_python_ver(pssbin):
 
     magic = read_magic_number(probable_pyc)
     # only the first 3 digits are important (2.x etc)
-    return pyc_magic_nums[magic][:3]
+    return PYC_MAGIC_NUMS[magic][:3]
 
 
-def _get_python_locations_dict():
-    if os_arch == "Win64":
+@memoize
+def get_python_locations_dict():
+    if is_win64():
         python_key = _winreg.OpenKey(
             _winreg.HKEY_LOCAL_MACHINE,
             'SOFTWARE\\Wow6432Node\\Python\\PythonCore')
@@ -332,22 +371,26 @@ def _get_python_locations_dict():
     return python_paths
 
 
-def _get_os_architecture():
+@memoize
+def get_os_architecture():
 
     try:
         # If this does not raise an exception, we are on a 64 bit windows.
-        _winreg.OpenKey(
-            _winreg.HKEY_LOCAL_MACHINE, 'SOFTWARE\\Wow6432Node')
-        return "Win64"
+        _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, 'SOFTWARE\\Wow6432Node')
+        os_arch = "Win64"
     except WindowsError:
-        return "Win32"
+        os_arch = "Win32"
+
+    return os_arch
 
 
-#####
-##### Execution starts here on import
-#####
+def is_win64():
+    if get_os_architecture == "Win64":
+        return True
+    return False
 
-pyc_magic_nums = {
+
+PYC_MAGIC_NUMS = {
     20121: '1.5.x',
     50428: '1.6',
     50823: '2.0.x',
@@ -426,58 +469,75 @@ pyc_magic_nums = {
 }
 
 
-# scrape pssbin paths from registry
-os_arch = _get_os_architecture()
-pssbin_paths = _get_psse_locations_dict()
-python_paths = _get_python_locations_dict()
-psse_version = None
-req_python_exec = None
-ignore_python_mismatch = False
-initialized = False
-if check_psspy_already_in_path():
-    initialized = True
+module_settings = {
+    'ignore_python_mismatch': False,
+}
 
-    # need to find the required python for this version
-    for folder in sys.path:
-        if 'PSSBIN' in folder:
-            # have a guess at the folder we want.
-            probable_folder = folder
-            break
 
-    if not probable_folder:
-        # search the entire path for psspy.pyc
-        probable_folder = ''
+def set_ignore_python_mismatch(value):
+    module_settings['ignore_python_mismatch'] = value
 
-    req_python = get_required_python_ver(probable_folder)
 
-    if req_python != sys.winver:
-        print (
-            "WARNING: you have started a Python %s session when the\n"
-            "version required by the PSSE available in your path is\n"
-            "Python %s.\n"
-            "Either use the required version of Python or,\n"
-            "if you have another version of PSSE installed, change your\n"
-            "PATH settings to point at the other install.\n\n"
-            "Run '%s -m pssepath' for more info about the versions\n"
-            "installed on your system.\n\n" % (
-                sys.winver, req_python, sys.executable)
-        )
+def set_status(**kwargs):
 
-        try:
-            req_python_exec = os.path.join(
-                python_paths[req_python], 'python.exe')
-        except KeyError:
-            # Very unlikely
-            # Don't have the required version of python to run this version of
-            # psse.  Something is not right...
-            print ("Required version of python (%s) not located in registry.\n"
-                   % (req_python,))
-    else:
-        req_python_exec = sys.executable
+    global psse_version, req_python_exec, initialized
+
+    if 'psse_version' in kwargs:
+        psse_version = kwargs['psse_version']
+
+    if 'req_python_exec' in kwargs:
+        req_python_exec = kwargs['req_python_exec']
+
+    if 'initialized' in kwargs:
+        initialized = kwargs['initialized']
+
+
+def init_check():
+    if check_psspy_already_in_path():
+        set_status(initialized=True)
+
+        # need to find the required python for this version
+        for folder in sys.path:
+            if 'PSSBIN' in folder:
+                # have a guess at the folder we want.
+                probable_folder = folder
+                break
+
+        if not probable_folder:
+            # search the entire path for psspy.pyc
+            probable_folder = ''
+
+        req_python = get_required_python_ver(probable_folder)
+
+        if req_python != sys.winver:
+            print (
+                "WARNING: you have started a Python %s session when the\n"
+                "version required by the PSSE available in your path is\n"
+                "Python %s.\n"
+                "Either use the required version of Python or,\n"
+                "if you have another version of PSSE installed, change your\n"
+                "PATH settings to point at the other install.\n\n"
+                "Run '%s -m pssepath' for more info about the versions\n"
+                "installed on your system.\n\n" % (
+                    sys.winver, req_python, sys.executable)
+            )
+            try:
+                req_python_exec = os.path.join(
+                    get_python_locations_dict()[req_python], 'python.exe')
+                set_status(req_python_exec=req_python_exec)
+            except KeyError:
+                # Very unlikely
+                # Don't have the required version of python to run this version of
+                # psse.  Something is not right...
+                print ("Required version of python (%s) not located in registry.\n"
+                       % (req_python,))
+        else:
+            set_status(req_python_exec=sys.executable)
 
 
 if __name__ == "__main__":
     # print the available psse installs.
+    init_check()
     print 'Found the following PSSE versions installed:\n'
     print_psse_selection()
     raw_input("Press Enter to continue...")
