@@ -45,9 +45,10 @@ particular install of PSSE to avoid "ImportError: Bad magic number...".
 
 Installation
 -------------
-To install from source::
 
-    python setup.py install
+Copy the ``pssepath.py`` file to the directory with the python files you want
+to use this script in.
+
 
 Usage
 ------
