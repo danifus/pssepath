@@ -12,9 +12,16 @@ to use the PSSE API. Using pssepath all you have to do is::
 
     import psspy
 
-Notice that using this module makes the PSSE system files available for use
-while avoiding making modifications to system paths or hardcoding the location
-of the PSSE system folders. This makes PSSE easy to use.
+Tested and works on:
+PSSE 32
+PSSE 33
+PSSE 34
+
+Supports 32 and 64 bit windows.
+
+Using this module makes the PSSE system files available for use while avoiding
+making modifications to system paths or hardcoding the location of the PSSE
+system folders. This makes PSSE easy to use.
 
 Without pssepath, you have to do something like this::
 
@@ -141,7 +148,7 @@ Visit the `Python for PSSE Forum <https://psspy.org/psse-help-forum/question/3/h
 
 See also:
 
-    - github: https://github.com/danaran/pssepath
+    - github: https://github.com/danifus/pssepath
     - contact: daniel@whit.com.au
 
 For any other questions about Python and PSSE, feel free to raise them on the
