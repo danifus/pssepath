@@ -13,9 +13,10 @@ to use the PSSE API. Using pssepath all you have to do is::
     import psspy
 
 Tested and works on:
-PSSE 32
-PSSE 33
-PSSE 34
+
+- PSSE 32
+- PSSE 33
+- PSSE 34
 
 Supports 32 and 64 bit windows.
 
