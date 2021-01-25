@@ -51,7 +51,8 @@ def run_once(fn):
 
 def get_python_ver():
     """Returns (python_version, nbits) eg. ("2.7", "32bit")"""
-    return sys.winver, platform.architecture()[0]
+    py_ver = "%s.%s" % sys.version_info[:2]
+    return py_ver, platform.architecture()[0]
 
 
 # winreg helpers:
