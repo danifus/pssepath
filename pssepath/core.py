@@ -133,6 +133,11 @@ def add_dir_to_path(psse_ver, psse_path):
         sys.path.insert(0, pssebin_dir)
         os.environ["PATH"] = pssebin_dir + ";" + os.environ["PATH"]
 
+    if int(psse_ver) == 35:
+        # PSSE 35 appears to require you to run the psse35 import, 
+        # otherwise psspy fails to initialise
+        import psse35
+
 
 def search_pssbin_reg_key(pti_key):
     pssbin_paths = {}
