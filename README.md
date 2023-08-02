@@ -18,6 +18,7 @@ Tested and works on:
 - PSSE 32
 - PSSE 33
 - PSSE 34
+- PSSE 35
 
 Supports 32 and 64 bit windows (and provides warnings when using mismatched 64
 bit python when PSSE requires 32 bit python).

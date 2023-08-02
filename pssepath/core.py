@@ -133,11 +133,17 @@ def add_dir_to_path(psse_ver, psse_path):
         sys.path.insert(0, pssebin_dir)
         os.environ["PATH"] = pssebin_dir + ";" + os.environ["PATH"]
 
+    if int(psse_ver) == 35:
+        # PSSE 35 appears to require you to run the psse35 import, 
+        # otherwise psspy fails to initialise
+        import psse35
+
 
 def search_pssbin_reg_key(pti_key):
     pssbin_paths = {}
     for sub_key in helpers.enum_reg_keys(pti_key):
         try:
+            # First, try the v34 registry format of PTI\PSSE 34\Product Paths
             with open_hkey_ctxmg(pti_key, sub_key + "\\Product Paths") as ver_key:
                 # Version num is the last 2 digits of the subkey
                 version_num = int(sub_key[-2:])
@@ -146,6 +152,20 @@ def search_pssbin_reg_key(pti_key):
                 )
         except WindowsError:
             pass
+
+        # Next, try the v35 registry format of PTI\PSSE 35\5\Product Paths (for 35.5)
+        with open_hkey_ctxmg(pti_key, sub_key) as ver_key:
+            for point_ver_key in helpers.enum_reg_keys(ver_key):
+                try:
+                    # Version num is the last 2 digits of the subkey (35) plus the point version (.5)
+                    with open_hkey_ctxmg(ver_key, point_ver_key + "\\Product Paths") as point_ver_hkey:
+                        version_num = float(sub_key[-2:] + "." + point_ver_key)
+                        pssbin_paths[version_num] = helpers.get_reg_value(
+                            point_ver_hkey, "PsseExePath"
+                        )
+                except WindowsError:
+                    pass
+
     return pssbin_paths
 
 
@@ -330,7 +350,7 @@ def print_psse_selection():
             python_str += " (Current running Python)"
         elif running_py_ver in installed_py_vers:
             python_str += " (Installed, not current running version.)"
-        simple_print("  %i. PSSE Version %d\n      %s" % (i, psse_ver, python_str))
+        simple_print("  %i. PSSE Version %s\n      %s" % (i, psse_ver, python_str))
     return options
 
 
