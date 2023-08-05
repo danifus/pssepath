@@ -505,8 +505,6 @@ def get_required_python_for_psspy_in(psspy_dir, psse_ver=None):
         return None
 
     py_ver = helpers.read_magic_number(probable_pyc)
-    # only the first 3 digits are important (2.x etc)
-    py_ver = py_ver[:3]
     if psse_ver is None:
         return py_ver, None
     else:

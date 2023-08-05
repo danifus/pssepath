@@ -73,6 +73,7 @@ def enum_reg_keys(key):
         i += 1
 
 
+# See https://github.com/python/cpython/blob/main/Lib/importlib/_bootstrap_external.py
 # pyc magic number (the code that hints what python can read the compiled
 # python file) helpers:
 PYC_MAGIC_NUMS = {
@@ -166,7 +167,53 @@ PYC_MAGIC_NUMS = {
     3423: "3.9a2",
     3424: "3.9a2",
     3425: "3.9a2",
+    3430: "3.10a1",
+    3431: "3.10a1",
+    3432: "3.10a2",
+    3433: "3.10a2",
+    3434: "3.10a6",
+    3435: "3.10a7",
+    3436: "3.10b1",
+    3437: "3.10b1",
+    3438: "3.10b1",
+    3439: "3.10b1",
 }
+
+# Alternatively use the more compact form found in PYC_MAGIC magic_values[] in:
+# https://github.com/python/cpython/blob/main/PC/launcher.c
+MAGIC_VALUES = (
+    # min, max, version
+    (50823, 50823, "2.0"),
+    (60202, 60202, "2.1"),
+    (60717, 60717, "2.2"),
+    (62011, 62021, "2.3"),
+    (62041, 62061, "2.4"),
+    (62071, 62131, "2.5"),
+    (62151, 62161, "2.6"),
+    (62171, 62211, "2.7"),
+    (3000, 3131, "3.0"),
+    (3141, 3151, "3.1"),
+    (3160, 3180, "3.2"),
+    (3190, 3230, "3.3"),
+    (3250, 3310, "3.4"),
+    (3320, 3351, "3.5"),
+    (3360, 3379, "3.6"),
+    (3390, 3399, "3.7"),
+    (3400, 3419, "3.8"),
+    (3420, 3429, "3.9"),
+    (3430, 3449, "3.10"),
+    # Allow 50 magic numbers per version from here on */
+    (3450, 3499, "3.11"),
+    (3500, 3549, "3.12"),
+    (3550, 3599, "3.13"),
+)
+
+
+def get_version_str_from_magic_number(magic):
+    for min_magic, max_magic, py_ver in MAGIC_VALUES:
+        if min_magic <= magic <= max_magic:
+            return py_ver
+    raise Exception(f"Unknown python .pyc magic number: {magic}")
 
 
 def read_magic_number(fname):
@@ -174,7 +221,7 @@ def read_magic_number(fname):
     magic_bytes = pyc_file.read(2)
     pyc_file.close()
     magic = struct.unpack("<H", magic_bytes)[0]
-    return PYC_MAGIC_NUMS[magic]
+    return get_version_str_from_magic_number(magic)
 
 
 # Windows program files 32bit vs 64bit helpers:
