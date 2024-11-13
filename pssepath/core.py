@@ -13,6 +13,12 @@ except ImportError:
     # Py3
     import winreg
 
+try:
+    import importlib
+except ImportError:
+    # very old python :(
+    importlib = None
+
 from .compat import compat_input, simple_print, open_hkey_ctxmg
 from . import helpers
 
@@ -133,10 +139,20 @@ def add_dir_to_path(psse_ver, psse_path):
         sys.path.insert(0, pssebin_dir)
         os.environ["PATH"] = pssebin_dir + ";" + os.environ["PATH"]
 
-    if int(psse_ver) == 35:
-        # PSSE 35 appears to require you to run the psse35 import, 
-        # otherwise psspy fails to initialise
-        import psse35
+
+def import_psseXX(psse_ver):
+    # PSSE 35 appears to require you to run the psse35 import, otherwise psspy
+    # fails to initialise.
+    # We generalise to support later versions (and potentially earlier
+    # versions) if required
+    # importlib isn't available before python 2.7
+    if importlib:
+        # Try to import the module if it exists or just ignore it
+        psseXX_module = "psse%s" % (psse_ver,)
+        try:
+            importlib.import_module(psseXX_module)
+        except ImportError:
+            pass
 
 
 def search_pssbin_reg_key(pti_key):
@@ -307,6 +323,7 @@ def add_pssepath(pref_psse_ver=None):
 
     selected_path = psspy_paths[(selected_psse_ver, current_pyver)]
     add_dir_to_path(selected_psse_ver, selected_path)
+    import_psseXX(selected_psse_ver)
     set_status(psse_version=selected_psse_ver, initialized=True)
 
 
@@ -334,6 +351,7 @@ def select_pssepath():
     selected_path = psspy_paths[selected_key]
     check_to_raise_compat_python_error(selected_key)
     add_dir_to_path(psse_ver, selected_path)
+    import_psseXX(psse_ver)
     set_status(psse_version=selected_key, initialized=True)
 
 
